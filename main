@@ -1,0 +1,335 @@
+import numpy as np
+from math import sin , cos , radians
+import sympy as sym 
+def DGM( sigma , theta , alpha , d , a , q ):
+  n = len (q) 
+  T0_n = np.ones((4,4),dtype = int )
+  res = np.zeros((4,4),dtype = int )
+  for j in range (0,n):
+    if sigma[j] == 0 :
+      theta[j]=q[j]
+    else :
+      d[j]=q[j]
+    temp = np.array([[int(cos(theta[j])) , int((-1)*cos(alpha[j])*sin(theta[j])) , int(sin(alpha[j])*sin(theta[j])) , int(a[j]*cos(theta[j])) ],
+                     [int(sin(theta[j])) , int(cos(alpha[j])*cos(theta[j])) , int((-1)*sin(alpha[j])*cos(theta[j])) , int(a[j]*sin(theta[j]))],
+                     [0 , int(sin(alpha[j])) , int(cos(alpha[j])) , d[j] ] ,
+                     [0 , 0 , 0 ,1]])
+    if j==0 :
+      T0_n = temp
+    else: 
+      T0_n=T0_n.dot(temp)
+  return T0_n
+
+
+d1 = sym.Symbol("d1")
+theta2 = sym.Symbol("theta2")
+d3 = sym.Symbol("d3")
+print(DGM ([1,0,1] , [0,theta2,0] ,[0,radians(-1*90),0], [d1,0,d3] , [0,0,0], [0.3,radians(-1*90),0.2] ))
+
+from random import *
+def initial_bees(n):
+    Q=[]
+    for i in range(n):
+        q=[]
+        d1=random()
+        d2=random()
+        theta2=uniform(-360,360)
+        q.append(round(d1,2))
+        q.append(round(theta2,2))
+        q.append(round(d2,2))
+        Q.append(q)
+    return Q
+print(initial_bees(5))
+
+from math import *
+def fitness(desired,existing):
+    x=0
+    for i in range(len(desired)):
+        x=x+pow(desired[i]-existing[i],2)
+    x=sqrt(x)
+    return x
+print(fitness([0.2, 0 , 0.3],[0.25, -257.42, 0.61]))
+
+
+def evaluate_bees(bees):
+    bee_fitness={}
+    desired=[0.2 , 0 , 0.3]
+    for i in range(len(bees)):
+        existing=[]
+        temp=DGM([1,0,1],[0,radians(-90),0],[0,radians(-90),0],[0.2, 0 ,0.3],[0,0,0],bees[i])
+        existing.append(temp[0][3])
+        existing.append(temp[1][3])
+        existing.append(temp[2][3])
+        bee_fitness[i]=fitness(desired,existing) 
+        sorted_bee_fitness=sorted(bee_fitness.items(),key=lambda x: x[1])
+    return sorted_bee_fitness
+print(evaluate_bees([[0.25, -257.42, 0.61]]))
+
+from statistics import *
+init_bees=initial_bees(10)
+print("initial bees are ",init_bees)
+n=evaluate_bees(init_bees)
+print("n is " ,n)
+res=0
+desired=[0.2 , 0 , 0.3]
+#while res not in n:
+for j in range(5):
+    diff=[]
+    for i in range(len(n)-1):
+        diff.append(abs(n[i][1]-n[i+1][1]))
+    ind=diff.index(max(diff))
+    m=[]
+    n_m=[]
+    if ind>2 :
+        for s in range(0,ind+1):
+            m.append(n[s])
+        for p in range(ind+1,len(n)):
+            n_m.append(n[p])
+        print("m is ", m )
+        print("n_m is ",n_m)
+    else :
+        for s in range(0,floor(len(n)/3)):
+            m.append(n[s])
+        for p in range(floor(len(n)/3),len(n)):
+            n_m.append(n[p])
+    e=[]
+    m_e=[]
+    m_values=[]
+    for i in range(len(m)):
+        m_values.append(m[i][1])
+    mean0=mean(m_values)
+    for i in range(len(m)):
+        if m[i][1]<mean0 :
+            s_e=[]
+            s_e.append(init_bees[m[i][0]])
+            s_e.append(m[i][1])
+            e.append(s_e)
+    print("e is ",e)
+    n1=3
+    n2=5
+    a0=0.3
+    a1=10
+    
+    e_dict={}
+    for i in range(len(e)):
+        e_alpha=[]
+        sol=e[i][0]
+        for o in range(n2):
+            e_a=[]
+            for l in range(len(sol)):
+                if sol[l]!=desired[l] :
+                    if sol[l]>3 :
+                        e_a.append(round(uniform(sol[l]-a1,sol[l]+a1),2))
+                    else:
+                        e_a.append(round(uniform(sol[l]-a0,sol[l]+a0),2))
+            
+            e_alpha.append(e_a)
+        e_alpha_values=evaluate_bees(e_alpha)
+        for j in range(len(e_alpha_values)):
+            if e_alpha_values[j] < e[i][1] :
+                e[i][0]=e_alpha[j]
+    
+    print( e)
+
+from statistics import *
+from random import *
+import numpy as np
+from math import sin , cos , radians
+import sympy as sym 
+from math import *
+
+def DGM( sigma , theta , alpha , d , a , q ):
+  n = len (q) 
+  T0_n = np.identity((4),dtype = int )
+  res = np.zeros((4,4),dtype = int )
+  for j in range (0,n):
+    if sigma[j] == 0 :
+      theta[j]=q[j]
+    else :
+      d[j]=q[j]
+    temp = np.array([[int(cos(theta[j])) , int((-1)*cos(alpha[j])*sin(theta[j])) , int(sin(alpha[j])*sin(theta[j])) , int(a[j]*cos(theta[j])) ],
+                     [int(sin(theta[j])) , int(cos(alpha[j])*cos(theta[j])) , int((-1)*sin(alpha[j])*cos(theta[j])) , int(a[j]*sin(theta[j]))],
+                     [0 , int(sin(alpha[j])) , int(cos(alpha[j])) , d[j] ] ,
+                     [0 , 0 , 0 ,1]])
+
+    T0_n=T0_n.dot(temp)
+  return T0_n
+
+d1 = sym.Symbol("d1")
+theta2 = sym.Symbol("theta2")
+d3 = sym.Symbol("d3")
+
+def initial_bees(n):
+    Q=[]
+    for i in range(n):
+        q=[]
+        d1=random()
+        d2=random()
+        theta2=int(uniform(-360,360))
+        q.append(round(d1,2))
+        q.append(theta2)
+        q.append(round(d2,2))
+        Q.append(q)
+    return Q
+print(initial_bees(5))
+
+
+def fitness(desired,existing):
+    x=0
+    for i in range(len(desired)):
+        x=x+pow(desired[i]-existing[i],2)
+    x=sqrt(x)
+    return x
+
+def evaluate_bees(bees):
+    bee_fitness={}
+    desired=[0.2 , 0 , 0.3]
+    for i in range(len(bees)):
+        existing=[]
+        temp=DGM([1,0,1],[0,radians(-90),0],[0,radians(-90),0],[0.2, 0 ,0.3],[0,0,0],bees[i])
+        existing.append(temp[0][3])
+        existing.append(temp[1][3])
+        existing.append(temp[2][3])
+        bee_fitness[i]=fitness(desired,existing) 
+        sorted_bee_fitness=sorted(bee_fitness.items(),key=lambda x: x[1])
+    return sorted_bee_fitness
+
+bees=[]
+init_bees=initial_bees(50)
+bees=init_bees
+print("initial bees are ",bees)
+print()
+v=evaluate_bees(bees)
+print('initial n',v)
+fit=[]
+n=[]
+n=v
+for i in range(len(n)):
+  fit.append(n[i][1])
+fit.sort()
+best_fit=fit[0]
+print("n is " ,n)
+res=0
+desired=[0.2 , 0 , 0.3]
+print(fit)
+print(best_fit)
+
+for w in range(10) :
+    diff=[]
+    for i in range(len(n)-1):
+        diff.append(abs(n[i][1]-n[i+1][1]))
+    ind=diff.index(max(diff))
+    m=[]
+    n_m=[]
+    if ind>2 :
+        for s in range(0,ind+1):
+            m.append(n[s])
+        for p in range(ind+1,len(n)):
+            n_m.append(n[p])
+        print("m is ", m )
+        print("n_m is ",n_m)
+    else :
+        for s in range(0,floor(len(n)/3)):
+            m.append(n[s])
+        for p in range(floor(len(n)/3),len(n)):
+            n_m.append(n[p])
+    e=[]
+    m_e=[]
+    m_values=[]
+    for i in range(len(m)):
+        m_values.append(m[i][1])
+    mean0=mean(m_values)
+    for i in range(len(m)):
+        if m[i][1]<mean0 :
+          s_e=[]
+          s_e.append(bees[m[i][0]])
+          s_e.append(m[i][1])
+          e.append(s_e)
+        else :
+          s_m_e =[]
+          s_m_e.append(bees[m[i][0]])
+          s_m_e.append(m[i][1])
+          m_e.append(s_m_e)
+    print("e is ",e)
+    print("m_e is ",m_e)
+    n1=10
+    n2=30
+    a0=0.3
+    a1=10
+    
+    e_dict={}
+    for i in range(len(e)):
+        e_alpha=[]
+        sol=e[i][0]
+        for o in range(n2):
+            e_a=[]
+            for l in range(len(sol)):
+                if sol[l]!=desired[l] :
+                    if sol[l]>3 :
+                        e_a.append(int(uniform(sol[l]-a1,sol[l]+a1)))
+                    else:
+                        e_a.append(round(uniform(sol[l]-a0,sol[l]+a0),2))
+            
+            e_alpha.append(e_a)
+        e_alpha_values=evaluate_bees(e_alpha)
+        print("io",e_alpha)
+        print('jk',e_alpha_values)
+        for j in range(len(e_alpha_values)):
+          if e_alpha_values[j][1] < e[i][1] :
+              e[i][0]=e_alpha[e_alpha_values[j][0]]
+    
+    print("new e",e)
+
+
+    m_e_dict={}
+    for i in range(len(m_e)):
+        m_e_alpha=[]
+        sol=m_e[i][0]
+        for o in range(n1):
+            m_e_a=[]
+            for l in range(len(sol)):
+                if sol[l]>3 :
+                    m_e_a.append(int(uniform(sol[l]-a1,sol[l]+a1)))
+                else:
+                    m_e_a.append(round(uniform(sol[l]-a0,sol[l]+a0),2))
+            
+            m_e_alpha.append(e_a)
+        m_e_alpha_values=evaluate_bees(m_e_alpha)
+        for j in range(len(m_e_alpha_values)):
+          if m_e_alpha_values[j][1] < m_e[i][1] :
+              m_e[i][0]=m_e_alpha[m_e_alpha_values[j][0]]
+    
+    print("new m-e", m_e)
+
+    p=[]
+    ran = []
+    for i in range(len(n_m)):
+      ran.append(i)
+    for k in range(10):
+      index = sample(ran,1)
+      l =[]
+      l.append(bees[n_m[index[0]][0]])        
+      l.append(n_m[index[0]][1])
+      p.append(l)
+
+    print(p)
+
+    temp_bees=[]
+    temp_bees_fit =[]
+    for i in range(len(e)):
+      temp_bees.append(e[i][0])
+      temp_bees_fit.append(e[i][1])
+    for i in range(len(m_e)):
+      temp_bees.append(m_e[i][0])
+      temp_bees_fit.append(m_e[i][1])
+    for i in range (len(p)):
+      temp_bees.append(p[i][0])
+      temp_bees_fit.append(p[i][1])
+    
+    best_fit=min(temp_bees_fit)
+    b_ind=temp_bees_fit.index(best_fit)
+    bees = temp_bees
+    #n=n.clear()
+    n=evaluate_bees(bees)
+    print("new n",n)
+    print('best sol',bees[b_ind])
